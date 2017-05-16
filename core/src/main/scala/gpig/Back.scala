@@ -13,9 +13,22 @@ import org.http4s.dsl._
 
 import scalaz.concurrent.Task
 
+import org.cts.CRSFactory
+import org.cts.registry.EPSGRegistry
+import org.cts.registry.RegistryManager
+import org.cts.crs.CoordinateReferenceSystem
+
 object HelloWorld {
   val allowOrigin = Header("Access-Control-Allow-Origin", "*")
-  val data = Parsing.data()
+
+  val cRSFactory = new CRSFactory
+  val registryManager = cRSFactory.getRegistryManager
+  registryManager.addRegistry(new EPSGRegistry)
+  val crs = cRSFactory.getCRS("EPSG:27700")
+
+  val data = Parsing.data().map { t =>
+    t
+  }
 
   val service = HttpService {
     case GET -> Root / "data" =>
@@ -39,8 +52,8 @@ case class Traffic(
     authority: String, // LocalAuthority
     road: String, // Road
     roadCategory: String, // RoadCategory
-    easting: Int, // Easting
-    northing: Int, // Northing
+    easting: String, // Easting
+    northing: String, // Northing
     startJunction: String, // StartJunction
     endJunction: String, // EndJunction
     linkLength: Double, // LinkLength_miles

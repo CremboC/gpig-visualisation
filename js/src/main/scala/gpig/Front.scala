@@ -7,7 +7,6 @@ import org.scalajs.jquery.{JQueryXHR, jQuery}
 import scala.scalajs.js
 import scala.scalajs.js.JSApp
 import scala.scalajs.js.annotation.JSExportTopLevel
-import scala.scalajs.js.timers._
 
 
 object Front extends JSApp {
@@ -19,31 +18,28 @@ object Front extends JSApp {
 
   def loadData(data: js.Array[Any], textStatus: String, jqXHR: JQueryXHR): Unit = {
     val traffics = data.asInstanceOf[js.Array[Traffic]]
-    println(traffics.length)
+    println(traffics.length) // do something with this..
 
-    setTimeout(2000) {
-      // init directions service
-      val dirService = new google.maps.DirectionsService()
-      val dirRenderer = new google.maps.DirectionsRenderer(DirectionsRendererOptions(
-        suppressMarkers = true,
-        map = map
-      ))
-      dirRenderer.setMap(map)
+    // init directions service
+    val dirService = new google.maps.DirectionsService()
+    val dirRenderer = new google.maps.DirectionsRenderer(DirectionsRendererOptions(
+      suppressMarkers = true,
+      map = map
+    ))
+    dirRenderer.setMap(map)
 
-      val request = new google.maps.DirectionsRequest {
-        override val origin = "48.1252,11.5407"
-        override val destination = "48.13376,11.5535"
-        override val travelMode = google.maps.TravelMode.DRIVING
+    val request = js.Dynamic.literal(
+      origin = "48.1252,11.5407",
+      destination = "48.13376,11.5535",
+      travelMode = google.maps.TravelMode.DRIVING
+    ).asInstanceOf[DirectionsRequest]
+
+    val callback = (result: DirectionsResult, status: DirectionsStatus) => {
+      if (status == DirectionsStatus.OK) {
+        dirRenderer.setDirections(result)
       }
-
-      val callback = (result: DirectionsResult, status: DirectionsStatus) => {
-        println("Got response")
-        if (status == DirectionsStatus.OK) {
-          dirRenderer.setDirections(result)
-        }
-      }
-      dirService.route(request, callback)
     }
+    dirService.route(request, callback)
   }
 
   @JSExportTopLevel("initMap")
