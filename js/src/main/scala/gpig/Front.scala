@@ -11,6 +11,7 @@ import scala.scalajs.js.annotation.JSExportTopLevel
 
 object Front extends JSApp {
   var map: google.maps.Map = _
+  var geocoder: google.maps.Geocoder = _
 
   def main(): Unit = {
     println("Hello!")
@@ -28,9 +29,33 @@ object Front extends JSApp {
     ))
     dirRenderer.setMap(map)
 
+
+
+//    traffics.map { t =>
+//
+//    }
+
+
+    val counting = traffics(50)
+
+
+    val geocodeReq = GeocoderRequest(address = s"${counting.startJunction} & ${counting.road}, ${counting.region}")
+
+    val startCallback = (results: js.Array[GeocoderResult], status: GeocoderStatus) => {
+      println(results.head)
+      println(status)
+    }
+    println(geocodeReq.address)
+    geocoder.geocode(geocodeReq, startCallback)
+
+
+    val origin = s"${traffics.head.y},${traffics.head.x}"
+    val destination = s"${traffics(1).y},${traffics(1).x}"
+//    traffics.head.y
+
     val request = js.Dynamic.literal(
-      origin = "48.1252,11.5407",
-      destination = "48.13376,11.5535",
+      origin = origin,
+      destination = destination,
       travelMode = google.maps.TravelMode.DRIVING
     ).asInstanceOf[DirectionsRequest]
 
@@ -47,10 +72,11 @@ object Front extends JSApp {
     map = new google.maps.Map(document.getElementById("map"),
       MapOptions(
         zoom = 2,
-        center = new google.maps.LatLng(2.8,-187.3),
+        center = new google.maps.LatLng(52.0, 0),
         mapTypeId = MapTypeId.ROADMAP
       )
     )
+    geocoder = new Geocoder
 
     val succ = loadData _
     jQuery.getJSON("http://localhost:8080/year/2016", success = succ)
@@ -67,8 +93,8 @@ trait Traffic extends js.Object {
   var authority: String = js.native // LocalAuthority
   var road: String = js.native // Road
   var roadCategory: String = js.native // RoadCategory
-  var easting: Int = js.native // Easting
-  var northing: Int = js.native // Northing
+  var x: Double = js.native // Easting
+  var y: Double = js.native // Northing
   var startJunction: String = js.native // StartJunction
   var endJunction: String = js.native // EndJunction
   var linkLength: Double = js.native // LinkLength_miles
